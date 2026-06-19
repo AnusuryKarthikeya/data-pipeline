@@ -1,33 +1,14 @@
 """Build the Bronze Delta table from raw GitHub event files."""
-import os
 from pathlib import Path
 
-# Windows only: point Spark at winutils/hadoop.dll before Spark starts.
-if os.name == "nt":
-    os.environ.setdefault("HADOOP_HOME", r"C:\hadoop")
-    os.environ["PATH"] = os.environ["PATH"] + os.pathsep + r"C:\hadoop\bin"
-
-from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
-from delta import configure_spark_with_delta_pip
+
+from pipeline.spark_session import get_spark
 
 ROOT = Path(__file__).resolve().parents[2]
 RAW_GLOB = str(ROOT / "data" / "raw" / "*.jsonl")
 BRONZE_PATH = str(ROOT / "data" / "bronze" / "events")
-
-
-def build_spark() -> SparkSession:
-    """Create a SparkSession configured to use Delta Lake."""
-    builder = (
-        SparkSession.builder.appName("bronze")
-        .master("local[*]")
-        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-        .config(
-            "spark.sql.catalog.spark_catalog",
-            "org.apache.spark.sql.delta.catalog.DeltaCatalog",
-        )
-    )
-    return configure_spark_with_delta_pip(builder).getOrCreate()
 
 
 def transform_to_bronze(raw: DataFrame) -> DataFrame:
@@ -46,7 +27,7 @@ def transform_to_bronze(raw: DataFrame) -> DataFrame:
 
 
 def build_bronze() -> None:
-    spark = build_spark()
+    spark = get_spark("bronze")
     raw = spark.read.json(RAW_GLOB)
     bronze = transform_to_bronze(raw)
     bronze.write.format("delta").mode("overwrite").save(BRONZE_PATH)
