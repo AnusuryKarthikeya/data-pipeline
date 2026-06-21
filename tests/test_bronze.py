@@ -1,22 +1,4 @@
-import os
-import sys
-import pytest
-from pyspark.sql import SparkSession
-
 from pipeline.bronze import transform_to_bronze
-
-@pytest.fixture(scope="session")
-def spark():
-    """A lightweight local Spark session shared across tests."""
-    # Point Spark's Python workers at THIS interpreter (the venv one), not the
-    # Windows "python" app-store alias, which isn't a real Python.
-    os.environ["PYSPARK_PYTHON"] = sys.executable
-    os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
-
-    session = SparkSession.builder.appName("tests").master("local[*]").getOrCreate()
-    yield session
-    session.stop()
-
 
 
 def test_transform_to_bronze(spark):
