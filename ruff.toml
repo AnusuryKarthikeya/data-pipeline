@@ -1,2 +1,0 @@
-[lint.per-file-ignores]
-"src/pipeline/bronze.py" = ["E402"]
