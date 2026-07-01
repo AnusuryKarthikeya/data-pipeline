@@ -14,6 +14,7 @@ PySpark, orchestrated by Dagster, validated for data quality, and served via Duc
 
 ## Status
 In active development — Phase 0 (foundations) complete.
+Medallion layers built: Bronze ✅ · Silver ✅ · Gold ✅ (daily repo activity).
 
 ## Local setup
 1. Clone the repo
