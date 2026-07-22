@@ -31,8 +31,8 @@ def build_gold() -> None:
 
     silver = spark.read.format("delta").load(SILVER_PATH)
     gold = transform_to_gold(silver)
-    # Full recompute from Silver: aggregates are cheap to rebuild, so overwrite
-    # rather than MERGE. Partition by date for pruning on time-range queries.
+    # I fully recompute from Silver: the aggregates are cheap to rebuild, so I
+    # overwrite rather than MERGE. I partition by date to prune time-range queries.
     gold.write.format("delta").mode("overwrite").partitionBy("event_date").save(GOLD_PATH)
 
     result = spark.read.format("delta").load(GOLD_PATH)

@@ -1,6 +1,7 @@
 [project]
 name = "pipeline"
 version = "0.1.0"
+description = "Incremental Bronze-Silver-Gold Delta lakehouse over the GitHub events API, built with PySpark and tested in CI."
 requires-python = ">=3.11"
 
 [build-system]

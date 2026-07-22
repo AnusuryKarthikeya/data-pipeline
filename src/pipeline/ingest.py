@@ -6,8 +6,8 @@ from pathlib import Path
 
 import requests
 
-# Resolve paths relative to this file so the script works from any directory.
-# ingest.py is at src/pipeline/ingest.py, so parents[2] is the project root.
+# I resolve paths relative to this file so it works from any directory.
+# ingest.py lives at src/pipeline/ingest.py, so parents[2] is my project root.
 ROOT = Path(__file__).resolve().parents[2]
 RAW_DIR = ROOT / "data" / "raw"
 STATE_FILE = ROOT / "data" / "state" / "watermark.json"
@@ -17,18 +17,18 @@ HEADERS = {
     "User-Agent": "data-pipeline-learning",
     "Accept": "application/vnd.github+json",
 }
-MAX_PAGES = 10  # GitHub limits how deep you can page; this is plenty for learning
+MAX_PAGES = 10  # GitHub limits how deep I can page; this is plenty for my learning project
 
 
 def load_watermark() -> int:
-    """Return the highest event id we've already ingested (0 on first run)."""
+    """Return the highest event id I've already ingested (0 on first run)."""
     if STATE_FILE.exists():
         return int(json.loads(STATE_FILE.read_text())["last_event_id"])
     return 0
 
 
 def save_watermark(last_event_id: int) -> None:
-    """Persist the new high-water mark so the next run knows where to resume."""
+    """Persist the new high-water mark so my next run knows where to resume."""
     STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
     STATE_FILE.write_text(json.dumps({"last_event_id": last_event_id}))
 
@@ -37,10 +37,10 @@ def fetch_page(page: int) -> list[dict]:
     """Fetch one page of events. Returns [] when no more pages are available."""
     resp = requests.get(API_URL, headers=HEADERS, params={"per_page": 100, "page": page})
     # GitHub's /events endpoint only exposes the ~300 most recent events.
-    # Paging past that limit returns 422 — treat it as "end of data" and stop.
+    # Paging past that limit returns 422 — I treat it as "end of data" and stop.
     if resp.status_code == 422:
         return []
-    resp.raise_for_status()  # still raise on genuine errors (e.g. rate limit, 403)
+    resp.raise_for_status()  # I still raise on genuine errors (e.g. rate limit, 403)
     return resp.json()
 
 def ingest() -> None:
@@ -53,21 +53,21 @@ def ingest() -> None:
         if not events:
             break  # no more data available
 
-        # Keep only events strictly newer than our watermark.
+        # I keep only events strictly newer than my watermark.
         fresh = [e for e in events if int(e["id"]) > watermark]
         new_events.extend(fresh)
 
-        # If this page already contained events we've seen, we've caught up.
+        # If this page already held events I've seen, I've caught up.
         if len(fresh) < len(events):
             break
 
-        time.sleep(1)  # be polite to the API and respect rate limits
+        time.sleep(1)  # I stay polite to the API and respect rate limits
 
     if not new_events:
         print("No new events since last run. Nothing to write.")
         return
 
-    # Land raw events as newline-delimited JSON (one JSON object per line),
+    # I land raw events as newline-delimited JSON (one JSON object per line),
     # one file per run, named with a UTC timestamp.
     RAW_DIR.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
@@ -76,7 +76,7 @@ def ingest() -> None:
         for event in new_events:
             f.write(json.dumps(event) + "\n")
 
-    # Advance the watermark to the highest id we just ingested.
+    # I advance the watermark to the highest id I just ingested.
     new_watermark = max(int(e["id"]) for e in new_events)
     save_watermark(new_watermark)
 

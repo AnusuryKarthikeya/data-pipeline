@@ -14,7 +14,7 @@ SILVER_PATH = str(ROOT / "data" / "silver" / "events")
 
 def transform_to_silver(bronze: DataFrame) -> DataFrame:
     """Clean and deduplicate Bronze events. Pure logic, no I/O -> testable."""
-    # Drop rows with no key, then keep ONE row per event_id (the latest by created_at).
+    # I drop rows with no key, then keep ONE row per event_id (the latest by created_at).
     deduped = (
         bronze.where(F.col("event_id").isNotNull())
         .withColumn(
@@ -38,7 +38,7 @@ def build_silver() -> None:
     silver = transform_to_silver(bronze)
 
     if DeltaTable.isDeltaTable(spark, SILVER_PATH):
-        # Table exists -> upsert: update matching rows, insert new ones.
+        # Table exists -> I upsert: update matching rows, insert new ones.
         target = DeltaTable.forPath(spark, SILVER_PATH)
         (
             target.alias("t")
@@ -49,7 +49,7 @@ def build_silver() -> None:
         )
         print("Merged into existing Silver table (updates + inserts).")
     else:
-        # First run -> the table doesn't exist yet, so create it.
+        # First run -> the table doesn't exist yet, so I create it.
         silver.write.format("delta").save(SILVER_PATH)
         print("Created new Silver table.")
 
