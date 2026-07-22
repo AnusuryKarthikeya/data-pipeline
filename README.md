@@ -6,12 +6,22 @@ processed with PySpark, gated by data-quality checks, and served for analytics
 via DuckDB.
 
 ## Tech stack
+What the code actually uses today:
+
 - **Compute:** Apache Spark (PySpark) + Delta Lake
-- **Storage:** local Delta tables (MinIO/S3 available via `docker compose`)
+- **Storage:** local Delta tables on disk (`data/…`)
 - **Orchestration:** `pipeline.orchestrate` (a lightweight stage runner)
 - **Data quality:** `pipeline.quality` (row/null/uniqueness gates)
 - **Serving:** DuckDB over the Gold Delta table
 - **CI/CD:** GitHub Actions (ruff + pytest)
+
+## Planned
+My roadmap — keywords I'm working toward, not part of the stack yet:
+
+- **Dagster** to replace my hand-rolled `orchestrate` stage runner
+- **Great Expectations** to replace my lightweight `quality` checks
+- **MinIO / S3** as remote object storage instead of local disk (there's a
+  `docker compose` MinIO service, but Spark still writes local Delta files)
 
 ## Architecture
 

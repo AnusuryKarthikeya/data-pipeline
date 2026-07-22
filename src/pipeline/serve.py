@@ -1,7 +1,7 @@
 """DuckDB serving layer over the Gold Delta table.
 
 Serving deliberately does NOT use Spark: the Gold table is small and read-only
-at this stage, so we resolve its active parquet files from the Delta log with
+at this stage, so I resolve its active parquet files from the Delta log with
 deltalake, then query them directly with DuckDB (no JVM, no extensions, fully
 offline). The analytics functions take a DuckDB connection with a `gold` view
 registered, which keeps the SQL testable against any small in-memory table.
@@ -18,7 +18,7 @@ GOLD_PATH = str(ROOT / "data" / "gold" / "daily_repo_activity")
 def connect_gold(gold_path: str = GOLD_PATH) -> duckdb.DuckDBPyConnection:
     """Return a DuckDB connection with the Gold table registered as view `gold`.
 
-    We ask the Delta log for the current version's active files (so overwritten
+    I ask the Delta log for the current version's active files (so overwritten
     parquet files are ignored) and let DuckDB read them, recovering the
     `event_date` partition column from the hive-style directory names.
     """

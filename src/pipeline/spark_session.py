@@ -2,12 +2,14 @@
 import os
 import sys
 
-# Windows only: point Spark at winutils/hadoop.dll before Spark starts.
+# Windows only: I point Spark at winutils/hadoop.dll before Spark starts.
+# I read HADOOP_HOME from the environment so this isn't tied to my machine,
+# and fall back to C:\hadoop (where I keep it) when it's not set.
 if os.name == "nt":
-    os.environ.setdefault("HADOOP_HOME", r"C:\hadoop")
-    os.environ["PATH"] = os.environ["PATH"] + os.pathsep + r"C:\hadoop\bin"
+    hadoop_home = os.environ.setdefault("HADOOP_HOME", r"C:\hadoop")
+    os.environ["PATH"] = os.environ["PATH"] + os.pathsep + os.path.join(hadoop_home, "bin")
 
-# Make Spark's Python workers use THIS interpreter, not a stray system 'python'.
+# I make Spark's Python workers use THIS interpreter, not a stray system 'python'.
 os.environ.setdefault("PYSPARK_PYTHON", sys.executable)
 os.environ.setdefault("PYSPARK_DRIVER_PYTHON", sys.executable)
 

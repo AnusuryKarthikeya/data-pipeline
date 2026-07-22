@@ -1,3 +1,4 @@
+from pipeline import bronze
 from pipeline.bronze import transform_to_bronze
 
 
@@ -24,3 +25,32 @@ def test_transform_to_bronze(spark):
 
     # created_at was parsed from a string into a real timestamp type
     assert dict(result.dtypes)["created_at"] == "timestamp"
+
+
+def test_new_raw_files_filters_by_watermark(tmp_path, monkeypatch):
+    # Point the module at a temp raw folder so I can control the files it sees.
+    monkeypatch.setattr(bronze, "RAW_DIR", tmp_path)
+    for name in [
+        "events_20240101T000000Z.jsonl",
+        "events_20240102T000000Z.jsonl",
+        "events_20240103T000000Z.jsonl",
+    ]:
+        (tmp_path / name).write_text("{}\n")
+
+    # With no watermark I load every file, oldest first.
+    assert [p.name for p in bronze.new_raw_files("")] == [
+        "events_20240101T000000Z.jsonl",
+        "events_20240102T000000Z.jsonl",
+        "events_20240103T000000Z.jsonl",
+    ]
+
+    # With a watermark I only pick up files newer than it -- that's the incremental bit.
+    newer = bronze.new_raw_files("events_20240102T000000Z.jsonl")
+    assert [p.name for p in newer] == ["events_20240103T000000Z.jsonl"]
+
+
+def test_watermark_round_trip(tmp_path, monkeypatch):
+    monkeypatch.setattr(bronze, "STATE_FILE", tmp_path / "bronze_watermark.json")
+    assert bronze.load_watermark() == ""  # nothing saved on the first run
+    bronze.save_watermark("events_20240103T000000Z.jsonl")
+    assert bronze.load_watermark() == "events_20240103T000000Z.jsonl"
